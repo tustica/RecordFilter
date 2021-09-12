@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container">
+    <h1>List Filtering using AJAX</h1>
+    <h3>How to filter the list:</h3>
+    <ol>
+        <li>Type in a first name from the list</li>
+        <li>or select a date range</li>
+        <li>Try typing a name not in the list</li>
+    </ol>
+    <div class="notes">
+        <p>Notes: The selected date time will be at the beginning of the day, so selecting 9/3 will not show records created before or after 12am on 9/3. This was intentional</p>
+    </div>
+    <form action="/" method="POST" class="header">
+        {% csrf_token %}
+        <div>
+            <label for="name">First Name: </label>
+            <input type="text" name="name" id="name">
+        </div>
+        <div>
+            <label for="from_date">From: </label>
+            <input type="date" name="from_date" id="from_date">
+            <label for="to_date">To: </label>
+            <input type="date" name="to_date" id="to_date">
+        </div>
+    </form>
+    <div class="page_numbers"></div>
+        <table class="table table-dark table-striped" id="table">
+            <tr>
+                <th>leads_id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th id="registered">Registered Datetime</th>
+                <th id="email_field">Email</th>
+            </tr>
+            {% for profile in profiles %}
+                <tr class="content_rows">
+                    <td>{{profile.id}}</td>
+                    <td>{{profile.first_name}}</td>
+                    <td>{{profile.last_name}}</td>
+                    <td>{{profile.registered_at}}</td>
+                    <td>{{profile.email}}</td>
+                </tr>
+            {% endfor %}
+                <tr class="new_rows" style="display: none;">
+
+                </tr>
+                <tr class="no_rows" style="display: none;">
+                    <td align="center" colspan="5">No Users</td>
+                </tr>
+        </table>
+    </div>
+</body>
+<script>
+    $('#from_date' && '#to_date').on("keyup change", function (){
+        $.ajax({
+            url: '/datedata',
+            method: 'post',
+            data: {
+                'from_date': $('#from_date').serialize(),
+                'to_date': $('#to_date').serialize(),
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(serverResponse){
+                console.log(serverResponse)
+                $('.added_row').remove()
+                serverResponse.forEach(element => {  
+                    date = element.registered_at
+                    console.log(date.toString())
+                    $('table').append("<tr class='added_row'><td>"+element.id+"</td><td>"+element.first_name+"</td><td>"+element.last_name+"</td><td>"+date.toLocaleString()+"</td><td>"+element.email+"</td>") 
+                });
+                $('.content_rows').hide()
+            }
+        })
+    })
+    $('#name').keyup(function(e){
+        if($(this).val().length == 0){
+            console.log('nothing')
+            $('.content_rows').show()
+        }
+        if($(this).serialize() == "name="){
+            return false;
+        }
+        var code = e.keyCode
+        if(code< 65 && code> 90){
+            return false;
+        }
+        $.ajax({
+            url: '/getdata',
+            method: "post",
+            data: {
+            'content': $(this).serialize(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+        },
+            success: function(serverResponse){
+                table_str = "";
+                console.log(serverResponse)
+                $('.added_row').remove()
+                if(!serverResponse.length){
+                        $('table').append("<tr class='added_row'><td id='search_row' colspan='5'><div id='search'><i class='fas fa-search fa-3x'></i>No Results</div></td>")
+                    }
+                serverResponse.forEach(element => {  
+                    $('table').append("<tr class='added_row'><td>"+element.id+"</td><td>"+element.first_name+"</td><td>"+element.last_name+"</td><td>"+element.registered_at+"</td><td>"+element.email+"</td>") 
+                });
+                $('.content_rows').hide()
+            }
+
+                
+                
+            
+        })
+    })
+</script>
+</html>

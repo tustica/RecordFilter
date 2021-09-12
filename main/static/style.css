@@ -1,0 +1,52 @@
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(219, 219, 219);
+    border: 1px solid black;
+    border-radius: 20px;
+    margin-top: 20px;
+}
+.notes{
+    width: 50%;
+}
+
+.header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 70%;
+    margin: 30px;
+}
+#table{
+    width: 70%;
+
+
+}
+
+#no_rows_data{
+    width: 100%;
+}
+
+#email_field{
+    min-width: 205px;
+}
+
+#registered{
+    min-width: 205px
+}
+
+#search_row{
+    height: 200px
+}
+#search{
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h1{
+    padding: 10px;
+}
