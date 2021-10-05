@@ -7,12 +7,17 @@ from django.core import serializers
 import datetime
 from datetime import tzinfo
 import pytz
+from json import dumps
 
 def index(request):
-    context = {
-        'profiles': Profile.objects.all()
-    }
-    return render(request, 'index.html', context)
+    profiles = Profile.objects.all()
+    data= serializers.serialize('json', profiles)
+    return render(request, 'index.html', {'data': data} )
+
+def addRecord(request):
+    new_record = Profile.objects.create(first_name=request.POST['first_name'],
+    last_name=request.POST['last_name'], email=request.POST['email'])
+    return redirect('/')
 
 def datadata(request):
     if request.method == 'POST':

@@ -13,16 +13,27 @@
 </head>
 <body>
     <div class="container">
-    <h1>List Filtering using AJAX</h1>
-    <h3>How to filter the list:</h3>
-    <ol>
-        <li>Type in a first name from the list</li>
-        <li>or select a date range</li>
-        <li>Try typing a name not in the list</li>
-    </ol>
-    <div class="notes">
-        <p>Notes: The selected date time will be at the beginning of the day, so selecting 9/3 will not show records created before or after 12am on 9/3. This was intentional</p>
-    </div>
+    <h1>List Filtering with Javascript/AJAX</h1>
+    <h2 id="addperson">Add person</h2>
+    <form action="/add" method="POST" class="header">
+        {% csrf_token %}
+        <div class="field">
+            <label for="first_name">First Name: </label>
+            <input type="text" name="first_name" id="first_name">
+        </div>
+        <div class="field">
+            <label for="last_name">Last Name: </label>
+            <input type="text" name="last_name" id="last_name">
+        </div>
+        <div class="field">
+            <label for="email">Email: </label>
+            <input type="text" name="email" id="email">
+        </div>
+        <div class="add">
+            <input type="submit" id="addbutton">
+        </div>
+    </form>
+    <h2 id="searchlist">Search List</h2>
     <form action="/" method="POST" class="header">
         {% csrf_token %}
         <div>
@@ -45,7 +56,7 @@
                 <th id="registered">Registered Datetime</th>
                 <th id="email_field">Email</th>
             </tr>
-            {% for profile in profiles %}
+            <!-- {% for profile in profiles %}
                 <tr class="content_rows">
                     <td>{{profile.id}}</td>
                     <td>{{profile.first_name}}</td>
@@ -53,7 +64,7 @@
                     <td>{{profile.registered_at}}</td>
                     <td>{{profile.email}}</td>
                 </tr>
-            {% endfor %}
+            {% endfor %} -->
                 <tr class="new_rows" style="display: none;">
 
                 </tr>
@@ -64,6 +75,37 @@
     </div>
 </body>
 <script>
+    var data = JSON.parse("{{data|escapejs}}")
+    function addAll(){
+        $('tbody').empty()
+        data.forEach(element => {  
+            $('table').append("<tr class='added_row'><td>"+element.pk+"</td><td>"+element.fields.first_name+"</td><td>"+element.fields.last_name+"</td><td>"+element.fields.registered_at+"</td><td>"+element.fields.email+"</td>") 
+        });
+    }
+    addAll();
+
+    $('#name').keyup(function(e){
+        if($(this).val().length == 0){
+            addAll();
+        }
+        data.forEach(e => {
+            if(e.fields.first_name[0].toLowerCase()+e.fields.first_name.slice(1,10) == $(this).val()){
+                if($('tbody tr').length>32){
+                    console.log('goagain')
+                    $('tbody').empty()
+                }
+                $('table').append("<tr class='added_row'><td>"+e.pk+"</td><td>"+e.fields.first_name+"</td><td>"+e.fields.last_name+"</td><td>"+e.fields.registered_at+"</td><td>"+e.fields.email+"</td>") 
+            }
+            else if(e.fields.first_name == $(this).val()){
+                if($('tbody tr').length>32){
+                    console.log('goagain')
+                    $('tbody').empty()
+                }
+                $('table').append("<tr class='added_row'><td>"+e.pk+"</td><td>"+e.fields.first_name+"</td><td>"+e.fields.last_name+"</td><td>"+e.fields.registered_at+"</td><td>"+e.fields.email+"</td>") 
+            }
+        })
+    })
+
     $('#from_date' && '#to_date').on("keyup change", function (){
         $.ajax({
             url: '/datedata',
@@ -85,42 +127,39 @@
             }
         })
     })
-    $('#name').keyup(function(e){
-        if($(this).val().length == 0){
-            console.log('nothing')
-            $('.content_rows').show()
-        }
-        if($(this).serialize() == "name="){
-            return false;
-        }
-        var code = e.keyCode
-        if(code< 65 && code> 90){
-            return false;
-        }
-        $.ajax({
-            url: '/getdata',
-            method: "post",
-            data: {
-            'content': $(this).serialize(),
-            'csrfmiddlewaretoken': '{{ csrf_token }}',
-        },
-            success: function(serverResponse){
-                table_str = "";
-                console.log(serverResponse)
-                $('.added_row').remove()
-                if(!serverResponse.length){
-                        $('table').append("<tr class='added_row'><td id='search_row' colspan='5'><div id='search'><i class='fas fa-search fa-3x'></i>No Results</div></td>")
-                    }
-                serverResponse.forEach(element => {  
-                    $('table').append("<tr class='added_row'><td>"+element.id+"</td><td>"+element.first_name+"</td><td>"+element.last_name+"</td><td>"+element.registered_at+"</td><td>"+element.email+"</td>") 
-                });
-                $('.content_rows').hide()
-            }
+    // $('#name').keyup(function(e){
+    //     if($(this).val().length == 0){
+    //         console.log('nothing')
+    //         $('.content_rows').show()
+    //     }
+    //     var code = e.keyCode
+    //     if(code< 65 && code> 90){
+    //         return false;
+    //     }
+    //     $.ajax({
+    //         url: '/getdata',
+    //         method: "post",
+    //         data: {
+    //         'content': $(this).serialize(),
+    //         'csrfmiddlewaretoken': '{{ csrf_token }}',
+    //     },
+    //         success: function(serverResponse){
+    //             table_str = "";
+    //             console.log(serverResponse)
+    //             $('.added_row').remove()
+    //             if(!serverResponse.length){
+    //                     $('table').append("<tr class='added_row'><td id='search_row' colspan='5'><div id='search'><i class='fas fa-search fa-3x'></i>No Results</div></td>")
+    //                 }
+    //             serverResponse.forEach(element => {  
+    //                 $('table').append("<tr class='added_row'><td>"+element.id+"</td><td>"+element.first_name+"</td><td>"+element.last_name+"</td><td>"+element.registered_at+"</td><td>"+element.email+"</td>") 
+    //             });
+    //             $('.content_rows').hide()
+    //         }
 
                 
                 
             
-        })
-    })
+    //     })
+    // })
 </script>
 </html>
